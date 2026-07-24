@@ -4,7 +4,7 @@ This Go application is a helper function designed to run as an `initContainer` i
 
 ## Features
 
-- Retrieves a GitHub Runner registration token for a specified organization.
+- Retrieves a GitHub Runner registration token for a specified organization or repository.
 - Works with both the public GitHub API (`https://api.github.com`) and GitHub Enterprise installations.
 - Writes the registration token to a specified file, which can be used later to initialize a GitHub runner.
 
@@ -13,9 +13,12 @@ This Go application is a helper function designed to run as an `initContainer` i
 Ensure the following environment variables are set in your Kubernetes manifest or environment where the application will run:
 
 - `GITHUB_TOKEN`: Your GitHub personal access token (with required permissions).
-- `GITHUB_ORGANIZATION`: The GitHub organization for which the runner will be registered.
+- `GITHUB_REPOSITORY`: *(Optional)* Repository in `owner/name` format for repository-level runners.
+- `GITHUB_ORGANIZATION`: *(Optional)* Organization name for organization-level runners.
 - `GITHUB_URL`: *(Optional)* The GitHub API URL (default: `https://api.github.com`).
 - `GITHUB_RUNNER_TOKEN_DEST`: *(Optional)* The file path where the GitHub Runner token will be stored (default: `/runner-token/runner_token`).
+
+Set one of `GITHUB_REPOSITORY` or `GITHUB_ORGANIZATION`. If both are set, repository-level token retrieval is used.
 
 ## Usage
 
@@ -97,7 +100,8 @@ You can also run the application locally for testing:
 
 ```bash
 export GITHUB_TOKEN=your-github-token
-export GITHUB_ORGANIZATION=your-github-organization
+export GITHUB_REPOSITORY=your-org/your-repo
+# or: export GITHUB_ORGANIZATION=your-github-organization
 export GITHUB_URL=https://api.github.com  # or your GitHub Enterprise URL
 export GITHUB_RUNNER_TOKEN_DEST=/path/to/save/token
 

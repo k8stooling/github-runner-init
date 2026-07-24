@@ -12,6 +12,7 @@ import (
 var (
 	githubToken        = os.Getenv("GITHUB_TOKEN")
 	githubOrganization = os.Getenv("GITHUB_ORGANIZATION")
+	githubRepository   = os.Getenv("GITHUB_REPOSITORY")
 	githubURL          = os.Getenv("GITHUB_URL")
 	serviceAccountName = os.Getenv("GITHUB_RUNNER_SERVICE_ACCOUNT")
 	githubRunnerTokenDest    = os.Getenv("GITHUB_RUNNER_TOKEN_DEST")
@@ -35,12 +36,22 @@ func init() {
 }
 
 // Function to get runner registration tokens
-func getRunnerToken(url, org, token string) (string, error) {
+func getRunnerToken(url, org, repo, token string) (string, error) {
 	var apiURL string
-	if url == "https://api.github.com" {
-		apiURL = fmt.Sprintf("%s/orgs/%s/actions/runners/registration-token", url, org)
+	if repo != "" {
+		if url == "https://api.github.com" {
+			apiURL = fmt.Sprintf("%s/repos/%s/actions/runners/registration-token", url, repo)
+		} else {
+			apiURL = fmt.Sprintf("%s/api/v3/repos/%s/actions/runners/registration-token", url, repo)
+		}
+	} else if org != "" {
+		if url == "https://api.github.com" {
+			apiURL = fmt.Sprintf("%s/orgs/%s/actions/runners/registration-token", url, org)
+		} else {
+			apiURL = fmt.Sprintf("%s/api/v3/orgs/%s/actions/runners/registration-token", url, org)
+		}
 	} else {
-		apiURL = fmt.Sprintf("%s/api/v3/orgs/%s/actions/runners/registration-token", url, org)
+		return "", fmt.Errorf("either GITHUB_REPOSITORY or GITHUB_ORGANIZATION must be set")
 	}
 
 	fmt.Printf("Requesting runner token from URL: %s\n", apiURL)
@@ -91,10 +102,11 @@ func getRunnerToken(url, org, token string) (string, error) {
 func main() {
 	// Ensure all environment variables are loaded
 	fmt.Printf("GITHUB_ORGANIZATION: %s\n", githubOrganization)
+	fmt.Printf("GITHUB_REPOSITORY: %s\n", githubRepository)
 	fmt.Printf("GITHUB_URL: %s\n", githubURL)
 	fmt.Printf("GITHUB_RUNNER_TOKEN_DEST: %s\n", githubRunnerTokenDest)
 
-	token, err := getRunnerToken(githubURL, githubOrganization, githubToken)
+	token, err := getRunnerToken(githubURL, githubOrganization, githubRepository, githubToken)
 	if err != nil {
 		fmt.Printf("Error getting runner token: %v\n", err)
 		os.Exit(1)
